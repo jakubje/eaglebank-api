@@ -49,7 +49,7 @@ eagle-bank-api/
 │           └── com/eaglebank/
 │               ├── config/
 │               ├── controller/
-│               ├── model/
+│               ├── integration/
 │               ├── repository/
 │               ├── service/
 │               └── EagleBankApiApplicationTests.java
@@ -149,6 +149,7 @@ curl -X POST http://localhost:8080/v1/users \
   -d '{
     "name": "John Doe",
     "email": "john.doe@example.com",
+    "password": "testPassword",
     "phoneNumber": "+447700900123",
     "address": {
       "line1": "123 Main Street",
