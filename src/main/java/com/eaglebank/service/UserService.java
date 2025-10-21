@@ -54,4 +54,9 @@ public class UserService {
 
         return UserResponse.from(user);
     }
+
+    public UserResponse getUserById(String id){
+        var user = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        return UserResponse.from(user);
+    }
 }

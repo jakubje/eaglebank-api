@@ -61,10 +61,10 @@ public class AuthServiceUnitTest {
     @Test
     void login_ValidCredentials_ShouldReturnLoginResponse() {
         String expectedToken = "jwt-token-12345";
-        
+
         when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(testUser));
         when(passwordEncoder.matches("password123", "$2a$10$hashedPassword")).thenReturn(true);
-        when(jwtService.generateToken("test@example.com")).thenReturn(expectedToken);
+        when(jwtService.generateToken("usr-12345", "test@example.com")).thenReturn(expectedToken);
 
         LoginResponse result = authService.login(validLoginRequest);
 
@@ -74,7 +74,7 @@ public class AuthServiceUnitTest {
 
         verify(userRepository).findByEmail("test@example.com");
         verify(passwordEncoder).matches("password123", "$2a$10$hashedPassword");
-        verify(jwtService).generateToken("test@example.com");
+        verify(jwtService).generateToken("usr-12345", "test@example.com");
     }
 
     @Test
@@ -87,7 +87,7 @@ public class AuthServiceUnitTest {
 
         verify(userRepository).findByEmail("test@example.com");
         verify(passwordEncoder, never()).matches(anyString(), anyString());
-        verify(jwtService, never()).generateToken(anyString());
+        verify(jwtService, never()).generateToken(anyString(), anyString());
     }
 
     @Test
@@ -101,7 +101,7 @@ public class AuthServiceUnitTest {
 
         verify(userRepository).findByEmail("test@example.com");
         verify(passwordEncoder).matches("password123", "$2a$10$hashedPassword");
-        verify(jwtService, never()).generateToken(anyString());
+        verify(jwtService, never()).generateToken(anyString(), anyString());
     }
 
     @Test
@@ -116,7 +116,7 @@ public class AuthServiceUnitTest {
 
         verify(userRepository).findByEmail("nonexistent@example.com");
         verify(passwordEncoder, never()).matches(anyString(), anyString());
-        verify(jwtService, never()).generateToken(anyString());
+        verify(jwtService, never()).generateToken(anyString(), anyString());
     }
 
     @Test
@@ -132,16 +132,16 @@ public class AuthServiceUnitTest {
 
         verify(userRepository).findByEmail("test@example.com");
         verify(passwordEncoder).matches("", "$2a$10$hashedPassword");
-        verify(jwtService, never()).generateToken(anyString());
+        verify(jwtService, never()).generateToken(anyString(), anyString());
     }
 
     @Test
     void login_JwtServiceReturnsToken_ShouldReturnCorrectResponse() {
         String customToken = "custom-jwt-token";
-        
+
         when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(testUser));
         when(passwordEncoder.matches("password123", "$2a$10$hashedPassword")).thenReturn(true);
-        when(jwtService.generateToken("test@example.com")).thenReturn(customToken);
+        when(jwtService.generateToken("usr-12345", "test@example.com")).thenReturn(customToken);
 
         LoginResponse result = authService.login(validLoginRequest);
 
@@ -161,6 +161,6 @@ public class AuthServiceUnitTest {
 
         verify(userRepository).findByEmail("test@example.com");
         verify(passwordEncoder).matches("password123", "$2a$10$hashedPassword");
-        verify(jwtService, never()).generateToken(anyString());
+        verify(jwtService, never()).generateToken(anyString(), anyString());
     }
 }

@@ -6,10 +6,10 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 public class Utils {
 
-    public static String getAuthenticatedUserEmail() {
+    public static String getAuthenticatedUserId() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         return (auth != null && auth.getPrincipal() instanceof User)
-                ? ((User) auth.getPrincipal()).getEmail()
+                ? ((User) auth.getPrincipal()).getId()
                 : null;
     }
 

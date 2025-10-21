@@ -7,6 +7,7 @@ import com.eaglebank.security.Utils;
 import com.eaglebank.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -21,18 +22,18 @@ public class UserController {
     @PostMapping
     public ResponseEntity<UserResponse> createUser(@Valid @RequestBody CreateUserRequest userRequest){
         UserResponse userResponse = userService.createUser(userRequest);
-        return ResponseEntity.status(HttpStatus.OK).body(userResponse);
+        return ResponseEntity.status(HttpStatus.CREATED).body(userResponse);
     }
 
     @GetMapping("/{userId}")
     public ResponseEntity<UserResponse> getUser(@PathVariable String userId) {
-
-        String authUserEmail = Utils.getAuthenticatedUserEmail();
-        if(!userId.equals(authUserEmail)){
+        String authUserId = Utils.getAuthenticatedUserId();
+        if(!userId.equals(authUserId)){
             throw new AccessDeniedException
                     ("Not authorized to perform this action");
         }
-        UserResponse response = userService.getUserByEmail(authUserEmail);
+
+        UserResponse response = userService.getUserById(userId);
 
         return ResponseEntity.ok(response);
     }

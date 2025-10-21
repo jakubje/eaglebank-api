@@ -36,6 +36,7 @@ eagle-bank-api/
 │   │   │       ├── controller/
 │   │   │       ├── dto/
 │   │   │       ├── exception/
+│   │   │       ├── filter/
 │   │   │       ├── model/
 │   │   │       ├── repository/
 │   │   │       ├── security/
@@ -108,7 +109,13 @@ The API will be available at: `http://localhost:8080`
 http://localhost:8080/v1
 ```
 
-### Implemented Endpoints (Basic Operations)
+### Implemented Endpoints
+
+#### Authentication
+
+| Method | Endpoint | Description | Authentication |
+|--------|----------|-------------|----------------|
+| POST | `/v1/auth/login` | Authenticate user and receive JWT token | No |
 
 #### User Management
 
@@ -137,9 +144,7 @@ http://localhost:8080/v1
 
 ### Authentication
 
-The API uses JWT (JSON Web Token) for authentication.
-
-**Note**: Authentication endpoint details will be added to the OpenAPI specification.
+The API uses JWT (JSON Web Token) for authentication. After creating a user, authenticate using the `/v1/auth/login` endpoint to receive a JWT token. Include this token in the `Authorization` header as `Bearer <token>` for all protected endpoints.
 
 ## Example API Usage
 
@@ -169,8 +174,16 @@ curl -X POST http://localhost:8080/v1/auth/login \
   -H "Content-Type: application/json" \
   -d '{
     "email": "john.doe@example.com",
-    "password": "your-password"
+    "password": "testPassword"
   }'
+```
+
+Response:
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "type": "Bearer"
+}
 ```
 
 ### 3. Create a Bank Account
@@ -214,10 +227,30 @@ The application uses the following main entities:
 Key configuration in `application.properties`:
 
 ```properties
+spring.application.name=EagleBank API
 spring.datasource.url=jdbc:postgresql://localhost:5432/eaglebank
 spring.datasource.username=eaglebank_user
 spring.datasource.password=eaglebank_password
-spring.jpa.hibernate.ddl-auto=update
+spring.jpa.hibernate.ddl-auto=validate
+
+spring.flyway.enabled=true
+
+jwt.secret=
+jwt.expiration-ms=1800000
+```
+Key configuration in `application.properties` for tests:
+```properties
+spring.datasource.url=jdbc:h2:mem:testdb;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE
+spring.datasource.driverClassName=org.h2.Driver
+spring.datasource.username=sa
+spring.datasource.password=
+spring.flyway.enabled=true
+spring.jpa.hibernate.ddl-auto=validate
+spring.jpa.show-sql=true
+spring.jpa.database-platform=org.hibernate.dialect.H2Dialect
+
+jwt.secret=20d05c6b1898cdceef37a138527dd461cfe11d068cc6b36f6b40d9ae47a333f5
+jwt.expiration-ms=1800000
 ```
 
 ## Docker Compose Configuration

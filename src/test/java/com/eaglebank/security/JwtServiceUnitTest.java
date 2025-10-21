@@ -17,6 +17,7 @@ public class JwtServiceUnitTest {
 
     private JwtService jwtService;
     private UserDetails userDetails;
+    private static final String TEST_USER_ID = "usr-12345";
     private static final String TEST_EMAIL = "test@example.com";
     private static final String TEST_SECRET = "20d05c6b1898cdceef37a138527dd461cfe11d068cc6b36f6b40d9ae47a333f5";
     private static final long TEST_EXPIRATION_MS = 1800000L; // 30 minutes
@@ -28,15 +29,15 @@ public class JwtServiceUnitTest {
         ReflectionTestUtils.setField(jwtService, "jwtExpirationMs", TEST_EXPIRATION_MS);
 
         userDetails = User.builder()
-                .username(TEST_EMAIL)
+                .username(TEST_USER_ID)
                 .password("password")
                 .authorities(Collections.emptyList())
                 .build();
     }
 
     @Test
-    void generateToken_ValidEmail_ShouldReturnNonEmptyToken() {
-        String token = jwtService.generateToken(TEST_EMAIL);
+    void generateToken_ValidUserIdAndEmail_ShouldReturnNonEmptyToken() {
+        String token = jwtService.generateToken(TEST_USER_ID, TEST_EMAIL);
 
         assertThat(token).isNotNull();
         assertThat(token).isNotEmpty();
@@ -44,42 +45,42 @@ public class JwtServiceUnitTest {
     }
 
     @Test
-    void generateToken_DifferentEmails_ShouldGenerateDifferentTokens() {
-        String token1 = jwtService.generateToken("user1@example.com");
-        String token2 = jwtService.generateToken("user2@example.com");
+    void generateToken_DifferentUserIds_ShouldGenerateDifferentTokens() {
+        String token1 = jwtService.generateToken("usr-11111", "user1@example.com");
+        String token2 = jwtService.generateToken("usr-22222", "user2@example.com");
 
         assertThat(token1).isNotEqualTo(token2);
     }
 
     @Test
-    void extractUsername_ValidToken_ShouldReturnCorrectEmail() {
-        String token = jwtService.generateToken(TEST_EMAIL);
+    void extractUserId_ValidToken_ShouldReturnCorrectUserId() {
+        String token = jwtService.generateToken(TEST_USER_ID, TEST_EMAIL);
 
-        String extractedEmail = jwtService.extractUsername(token);
+        String extractedUserId = jwtService.extractUserId(token);
 
-        assertThat(extractedEmail).isEqualTo(TEST_EMAIL);
+        assertThat(extractedUserId).isEqualTo(TEST_USER_ID);
     }
 
     @Test
-    void extractUsername_InvalidToken_ShouldThrowException() {
+    void extractUserId_InvalidToken_ShouldThrowException() {
         String invalidToken = "invalid.jwt.token";
 
-        assertThatThrownBy(() -> jwtService.extractUsername(invalidToken))
+        assertThatThrownBy(() -> jwtService.extractUserId(invalidToken))
                 .isInstanceOf(Exception.class);
     }
 
     @Test
-    void extractUsername_TamperedToken_ShouldThrowSignatureException() {
-        String token = jwtService.generateToken(TEST_EMAIL);
+    void extractUserId_TamperedToken_ShouldThrowSignatureException() {
+        String token = jwtService.generateToken(TEST_USER_ID, TEST_EMAIL);
         String tamperedToken = token.substring(0, token.length() - 10) + "tampered123";
 
-        assertThatThrownBy(() -> jwtService.extractUsername(tamperedToken))
+        assertThatThrownBy(() -> jwtService.extractUserId(tamperedToken))
                 .isInstanceOf(SignatureException.class);
     }
 
     @Test
     void isTokenValid_ValidTokenAndMatchingUserDetails_ShouldReturnTrue() {
-        String token = jwtService.generateToken(TEST_EMAIL);
+        String token = jwtService.generateToken(TEST_USER_ID, TEST_EMAIL);
 
         boolean isValid = jwtService.isTokenValid(token, userDetails);
 
@@ -88,10 +89,10 @@ public class JwtServiceUnitTest {
 
     @Test
     void isTokenValid_ValidTokenButDifferentUserDetails_ShouldReturnFalse() {
-        String token = jwtService.generateToken(TEST_EMAIL);
+        String token = jwtService.generateToken(TEST_USER_ID, TEST_EMAIL);
 
         UserDetails differentUser = User.builder()
-                .username("different@example.com")
+                .username("usr-99999")
                 .password("password")
                 .authorities(Collections.emptyList())
                 .build();
@@ -108,7 +109,7 @@ public class JwtServiceUnitTest {
         ReflectionTestUtils.setField(shortExpirationService, "secret", TEST_SECRET);
         ReflectionTestUtils.setField(shortExpirationService, "jwtExpirationMs", 1L); // 1ms
 
-        String token = shortExpirationService.generateToken(TEST_EMAIL);
+        String token = shortExpirationService.generateToken(TEST_USER_ID, TEST_EMAIL);
 
         // Wait for token to expire
         try {
@@ -123,7 +124,7 @@ public class JwtServiceUnitTest {
 
     @Test
     void isTokenValid_TokenFromDifferentSecret_ShouldThrowSignatureException() {
-        String token = jwtService.generateToken(TEST_EMAIL);
+        String token = jwtService.generateToken(TEST_USER_ID, TEST_EMAIL);
 
         // Create service with different secret
         JwtService differentSecretService = new JwtService();
@@ -136,9 +137,9 @@ public class JwtServiceUnitTest {
     }
 
     @Test
-    void generateToken_SameEmailCalledTwice_ShouldGenerateDifferentTokens() {
+    void generateToken_SameUserIdCalledTwice_ShouldGenerateDifferentTokens() {
         // Tokens should be different due to different timestamps
-        String token1 = jwtService.generateToken(TEST_EMAIL);
+        String token1 = jwtService.generateToken(TEST_USER_ID, TEST_EMAIL);
 
         try {
             Thread.sleep(1000);
@@ -146,22 +147,22 @@ public class JwtServiceUnitTest {
             Thread.currentThread().interrupt();
         }
 
-        String token2 = jwtService.generateToken(TEST_EMAIL);
+        String token2 = jwtService.generateToken(TEST_USER_ID, TEST_EMAIL);
 
         assertThat(token1).isNotEqualTo(token2);
     }
 
     @Test
-    void extractUsername_MultipleExtractionsFromSameToken_ShouldReturnSameValue() {
-        String token = jwtService.generateToken(TEST_EMAIL);
+    void extractUserId_MultipleExtractionsFromSameToken_ShouldReturnSameValue() {
+        String token = jwtService.generateToken(TEST_USER_ID, TEST_EMAIL);
 
-        String extracted1 = jwtService.extractUsername(token);
-        String extracted2 = jwtService.extractUsername(token);
-        String extracted3 = jwtService.extractUsername(token);
+        String extracted1 = jwtService.extractUserId(token);
+        String extracted2 = jwtService.extractUserId(token);
+        String extracted3 = jwtService.extractUserId(token);
 
-        assertThat(extracted1).isEqualTo(TEST_EMAIL);
-        assertThat(extracted2).isEqualTo(TEST_EMAIL);
-        assertThat(extracted3).isEqualTo(TEST_EMAIL);
+        assertThat(extracted1).isEqualTo(TEST_USER_ID);
+        assertThat(extracted2).isEqualTo(TEST_USER_ID);
+        assertThat(extracted3).isEqualTo(TEST_USER_ID);
     }
 
     @Test
@@ -177,18 +178,19 @@ public class JwtServiceUnitTest {
     }
 
     @Test
-    void extractUsername_NullToken_ShouldThrowException() {
-        assertThatThrownBy(() -> jwtService.extractUsername(null))
+    void extractUserId_NullToken_ShouldThrowException() {
+        assertThatThrownBy(() -> jwtService.extractUserId(null))
                 .isInstanceOf(Exception.class);
     }
 
     @Test
-    void generateToken_EmailWithSpecialCharacters_ShouldGenerateValidToken() {
+    void generateToken_UserIdWithSpecialCharacters_ShouldGenerateValidToken() {
+        String userIdWithSpecialChars = "usr-123-abc";
         String emailWithSpecialChars = "test+special@example.co.uk";
 
-        String token = jwtService.generateToken(emailWithSpecialChars);
-        String extractedEmail = jwtService.extractUsername(token);
+        String token = jwtService.generateToken(userIdWithSpecialChars, emailWithSpecialChars);
+        String extractedUserId = jwtService.extractUserId(token);
 
-        assertThat(extractedEmail).isEqualTo(emailWithSpecialChars);
+        assertThat(extractedUserId).isEqualTo(userIdWithSpecialChars);
     }
 }

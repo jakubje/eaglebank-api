@@ -32,7 +32,7 @@ public class AuthService {
             throw new InvalidCredentialsException();
         }
 
-        String token = jwtService.generateToken(user.getEmail());
+        String token = jwtService.generateToken(user.getId(), user.getEmail());
         log.info("User logged in successfully: {}", user.getEmail());
 
         return new LoginResponse(token, "Bearer");
