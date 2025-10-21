@@ -1,9 +1,6 @@
 package com.eaglebank.exception.handler;
 
-import com.eaglebank.exception.BadRequestException;
-import com.eaglebank.exception.ForbiddenException;
-import com.eaglebank.exception.ResourceNotFoundException;
-import com.eaglebank.exception.InvalidRequestException;
+import com.eaglebank.exception.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
@@ -13,7 +10,6 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import java.net.URI;
 import java.time.Instant;
@@ -135,28 +131,6 @@ public class GlobalExceptionHandler {
         return problemDetail;
     }
 
-    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
-    public ProblemDetail handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
-        log.warn("Type mismatch for parameter '{}': invalid value '{}'", ex.getName(), ex.getValue());
-
-        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
-                HttpStatus.BAD_REQUEST,
-                String.format("Invalid value '%s' for parameter '%s'", ex.getValue(), ex.getName())
-        );
-        problemDetail.setTitle("Invalid Request Parameters");
-        problemDetail.setType(URI.create(TYPE_BASE_URL + "/invalid-parameters"));
-        problemDetail.setProperty(TIMESTAMP_KEY, Instant.now());
-
-        Map<String, String> detail = new HashMap<>();
-        detail.put("field", ex.getName());
-        detail.put("message", String.format("Invalid value '%s' for parameter '%s'", ex.getValue(), ex.getName()));
-        detail.put("type", "TYPE_MISMATCH");
-
-        problemDetail.setProperty("details", List.of(detail));
-
-        return problemDetail;
-    }
-
     // 400 - Custom Bad Request with details
     @ExceptionHandler(BadRequestException.class)
     public ProblemDetail handleBadRequest(BadRequestException ex) {
@@ -187,6 +161,21 @@ public class GlobalExceptionHandler {
                 "Access token is missing or invalid"
         );
         problemDetail.setTitle("Authentication Failed");
+        problemDetail.setType(URI.create(TYPE_BASE_URL + "/unauthorized"));
+        problemDetail.setProperty(TIMESTAMP_KEY, Instant.now());
+
+        return problemDetail;
+    }
+
+    @ExceptionHandler(InvalidCredentialsException.class)
+    public ProblemDetail handleInvalidCredentials(InvalidCredentialsException ex) {
+        log.warn("Login failed: {}", ex.getMessage());
+
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+                HttpStatus.UNAUTHORIZED,
+                "Invalid credentials"
+        );
+        problemDetail.setTitle("Login Failed");
         problemDetail.setType(URI.create(TYPE_BASE_URL + "/unauthorized"));
         problemDetail.setProperty(TIMESTAMP_KEY, Instant.now());
 

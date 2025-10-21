@@ -4,6 +4,7 @@ package com.eaglebank.service;
 import com.eaglebank.dto.CreateUserRequest;
 import com.eaglebank.dto.UserResponse;
 import com.eaglebank.exception.InvalidRequestException;
+import com.eaglebank.exception.ResourceNotFoundException;
 import com.eaglebank.model.User;
 import com.eaglebank.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -46,5 +47,11 @@ public class UserService {
         log.info("User created. ID: {}", savedUser.getId());
 
         return UserResponse.from(savedUser);
+    }
+
+    public UserResponse getUserByEmail(String email) {
+        var user = userRepository.findByEmail(email).orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        return UserResponse.from(user);
     }
 }

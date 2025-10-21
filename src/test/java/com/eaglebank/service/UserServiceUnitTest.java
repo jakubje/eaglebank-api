@@ -22,7 +22,7 @@ import java.time.Instant;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("UserService Unit Tests")
-public class UserServiceTest {
+public class UserServiceUnitTest {
 
     @Mock
     private UserRepository userRepository;

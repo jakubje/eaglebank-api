@@ -117,6 +117,8 @@ http://localhost:8080/v1
 | POST | `/v1/users` | Create a new user | No |
 | GET | `/v1/users/{userId}` | Fetch user details | Yes |
 
+### TODO Endpoints
+
 #### Account Management
 
 | Method | Endpoint | Description | Authentication |
